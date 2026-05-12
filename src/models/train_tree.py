@@ -21,11 +21,18 @@ from src.models.common import (
 FEATURE_SETS = ["context_only", "context_metar"]
 
 
-def train_tree(feature_set: str = "context_metar", n_estimators: int = 200,
-               max_depth: int | None = 15, min_samples_leaf: int = 50,
-               sample_frac: float | None = None) -> dict:
+def train_tree(
+    feature_set: str = "context_metar",
+    n_estimators: int = 200,
+    max_depth: int | None = 15,
+    min_samples_leaf: int = 50,
+    sample_frac: float | None = None,
+    neg_ratio: int | None = None,
+) -> dict:
     print(f"\n=== Random Forest [{feature_set}] ===")
-    X_tr, y_tr, X_va, y_va, X_te, y_te, num_feats, cat_feats = load_splits(feature_set, sample_frac)
+    X_tr, y_tr, X_va, y_va, X_te, y_te, num_feats, cat_feats = load_splits(
+        feature_set, sample_frac, neg_ratio
+    )
 
     preprocessor = create_preprocessor(num_feats, cat_feats)
     clf = RandomForestClassifier(
@@ -85,13 +92,16 @@ def train_tree(feature_set: str = "context_metar", n_estimators: int = 200,
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--sample-frac", type=float, default=None)
+    parser.add_argument("--sample-frac", type=float, default=None,
+                        help="Fraction of negatives to keep (legacy). Use --neg-ratio instead.")
+    parser.add_argument("--neg-ratio", type=int, default=None,
+                        help="Keep at most neg_ratio × n_positive negatives (e.g. 10).")
     parser.add_argument("--n-estimators", type=int, default=200)
     parser.add_argument("--max-depth", type=int, default=15)
     args = parser.parse_args()
     for fs in FEATURE_SETS:
         train_tree(fs, n_estimators=args.n_estimators, max_depth=args.max_depth,
-                   sample_frac=args.sample_frac)
+                   sample_frac=args.sample_frac, neg_ratio=args.neg_ratio)
 
 
 if __name__ == "__main__":

@@ -23,9 +23,15 @@ from src.models.common import (
 FEATURE_SETS = ["context_only", "context_metar"]
 
 
-def train_lda(feature_set: str = "context_metar", sample_frac: float | None = None) -> dict:
+def train_lda(
+    feature_set: str = "context_metar",
+    sample_frac: float | None = None,
+    neg_ratio: int | None = None,
+) -> dict:
     print(f"\n=== LDA [{feature_set}] ===")
-    X_tr, y_tr, X_va, y_va, X_te, y_te, num_feats, cat_feats = load_splits(feature_set, sample_frac)
+    X_tr, y_tr, X_va, y_va, X_te, y_te, num_feats, cat_feats = load_splits(
+        feature_set, sample_frac, neg_ratio
+    )
 
     preprocessor = create_preprocessor(num_feats, cat_feats)
 
@@ -61,10 +67,12 @@ def train_lda(feature_set: str = "context_metar", sample_frac: float | None = No
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--sample-frac", type=float, default=None,
-                        help="Fraction of negative training samples to use (e.g. 0.2). All positives kept.")
+                        help="Fraction of negatives to keep (legacy). Use --neg-ratio instead.")
+    parser.add_argument("--neg-ratio", type=int, default=None,
+                        help="Keep at most neg_ratio × n_positive negatives (e.g. 10).")
     args = parser.parse_args()
     for fs in FEATURE_SETS:
-        train_lda(fs, args.sample_frac)
+        train_lda(fs, args.sample_frac, args.neg_ratio)
 
 
 if __name__ == "__main__":

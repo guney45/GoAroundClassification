@@ -29,8 +29,19 @@ from src.features.build_features import load_data, build_feature_matrix
 # Data loading                                                                 #
 # --------------------------------------------------------------------------- #
 
-def load_splits(feature_set: str = "context_metar", sample_frac: float | None = None) -> tuple:
-    """Return (X_tr, y_tr, X_va, y_va, X_te, y_te, num_feats, cat_feats)."""
+def load_splits(
+    feature_set: str = "context_metar",
+    sample_frac: float | None = None,
+    neg_ratio: int | None = None,
+) -> tuple:
+    """Return (X_tr, y_tr, X_va, y_va, X_te, y_te, num_feats, cat_feats).
+
+    Negative undersampling (applied only to training set, all positives kept):
+      neg_ratio  – keep at most (neg_ratio × n_positive) negatives.
+                   Recommended: 10 for a ~9 % positive rate.
+                   Takes precedence over sample_frac when both are given.
+      sample_frac – keep this fraction of negatives (legacy flag).
+    """
     print(f"  Loading splits (feature_set={feature_set}) ...")
     t0 = time.time()
 
@@ -38,14 +49,22 @@ def load_splits(feature_set: str = "context_metar", sample_frac: float | None = 
     valid = load_data(VALID_PARQUET)
     test  = load_data(TEST_PARQUET)
 
-    if sample_frac is not None and sample_frac < 1.0:
-        # Stratified sample to preserve go-around rate
+    if neg_ratio is not None:
+        pos_tr  = train[train["target"] == 1]
+        neg_all = train[train["target"] == 0]
+        n_neg   = min(len(neg_all), neg_ratio * len(pos_tr))
+        neg_tr  = neg_all.sample(n=n_neg, random_state=42)
+        train   = pd.concat([pos_tr, neg_tr]).sample(frac=1, random_state=42)
+        rate    = 100.0 * len(pos_tr) / len(train)
+        print(f"  Train (neg_ratio={neg_ratio}): {len(train):,} rows | "
+              f"{len(pos_tr):,} go-arounds ({rate:.1f} %)")
+    elif sample_frac is not None and sample_frac < 1.0:
         pos_tr = train[train["target"] == 1]
-        neg_tr = train[train["target"] == 0].sample(
-            frac=sample_frac, random_state=42
-        )
-        train = pd.concat([pos_tr, neg_tr]).sample(frac=1, random_state=42)
-        print(f"  Train sampled: {len(train):,} rows ({int(train['target'].sum())} go-arounds)")
+        neg_tr = train[train["target"] == 0].sample(frac=sample_frac, random_state=42)
+        train  = pd.concat([pos_tr, neg_tr]).sample(frac=1, random_state=42)
+        rate   = 100.0 * int(train["target"].sum()) / len(train)
+        print(f"  Train (sample_frac={sample_frac}): {len(train):,} rows | "
+              f"{int(train['target'].sum()):,} go-arounds ({rate:.1f} %)")
 
     print(f"  Train: {len(train):,}  Valid: {len(valid):,}  Test: {len(test):,}")
 

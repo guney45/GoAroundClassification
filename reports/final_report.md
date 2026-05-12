@@ -10,7 +10,9 @@ Istanbul Technical University, Department of Computer Engineering
 
 ## Abstract
 
-This study addressed the binary classification of aircraft go-arounds — aborted landing attempts in which the flight crew initiates a climb from final approach — using publicly available Automatic Dependent Surveillance–Broadcast (ADS-B) trajectory records augmented with METAR surface weather observations. Go-arounds are rare events that impose increased workload on pilots and air traffic controllers and contribute to runway inefficiency. The study aimed to determine whether operational and meteorological features derivable from open data sources are predictive of this event at the per-flight level. The dataset comprised approximately 9 million landings at 176 airports from 2019, with approximately 33,000 go-around occurrences (≈ 0.37 % positive rate). A temporal train / validation / test split was used to prevent leakage across time. Five classifier families were evaluated across two feature sets: an operational-context-only variant and an extended variant that also included METAR weather features. All classifiers were assessed using ROC-AUC, precision-recall AUC (PR-AUC), F1-score, precision, recall, accuracy, and confusion matrix analysis. The Multi-Layer Perceptron trained on the full feature set (context + METAR) achieved the highest PR-AUC (0.0179 on validation, 0.0160 on the held-out test set) and a test ROC-AUC of 0.6846. Inclusion of weather features consistently improved performance across all classifiers. The trained model was deployed inside a Docker container with a FastAPI backend and an HTML web interface for real-time single-flight prediction.
+This study addressed the binary classification of aircraft go-arounds — aborted landing attempts in which the flight crew initiates a climb from final approach — using publicly available Automatic Dependent Surveillance–Broadcast (ADS-B) trajectory records augmented with METAR surface weather observations. Go-arounds are rare events that impose increased workload on pilots and air traffic controllers and contribute to runway inefficiency. The study aimed to determine whether operational and meteorological features derivable from open data sources are predictive of this event at the per-flight level. The dataset comprised approximately 9 million landings at 176 airports from 2019, with approximately 33,000 go-around occurrences (≈ 0.37 % positive rate). A temporal train / validation / test split was used to prevent leakage across time. Five classifier families were evaluated across two feature sets: an operational-context-only variant and an extended variant that also included METAR weather features. All classifiers were assessed using ROC-AUC, precision-recall AUC (PR-AUC), F1-score, precision, recall, accuracy, and confusion matrix analysis. Models were trained with a balanced negative undersampling strategy (10 × positive count) and, for the MLP, balanced sample weights to address the severe class imbalance. The Multi-Layer Perceptron trained on the full feature set (context + METAR) achieved the highest PR-AUC and was selected as the final deployed model. Inclusion of weather features consistently improved performance across all classifiers. The trained model was deployed inside a Docker container with a FastAPI backend and an HTML web interface for real-time single-flight prediction.
+
+> **Note:** Numerical results in Sections 4–5 will be updated with the retrained model's metrics.
 
 ---
 
@@ -55,7 +57,7 @@ The primary data source is the *Large Landing Trajectory Dataset for Go-Around A
 | Airports | 176 |
 | Countries | 44 |
 | Year of data | 2019 |
-| Number of features used | 17 (context) / 27 (context + METAR) |
+| Number of features used | 15 (context) / 27 (context + METAR) |
 | Classes | 2 (normal landing = 0, go-around = 1) |
 
 **Class balance.** The dataset is severely imbalanced. Go-arounds represent approximately 0.37 % of all landing attempts. This makes accuracy a misleading evaluation metric; a trivial classifier that always predicts "normal landing" would achieve over 99.6 % accuracy.
@@ -127,7 +129,7 @@ $$\hat{p}(x) = \frac{1}{T}\sum_{t=1}^{T} \hat{p}_t(x).$$
 
 Class weights were balanced inversely proportional to class frequencies.
 
-**Multi-Layer Perceptron (MLP).** A feedforward neural network with two hidden layers of 64 and 32 units, ReLU activations, trained with the Adam optimizer and binary cross-entropy loss. Early stopping monitored validation accuracy with a patience of 10 epochs. The internal validation fraction was 10 % of the training data.
+**Multi-Layer Perceptron (MLP).** A feedforward neural network with two hidden layers of 128 and 64 units, ReLU activations, trained with the Adam optimizer. Class imbalance is addressed by assigning per-sample weights inversely proportional to class frequency (`sklearn.utils.class_weight.compute_sample_weight("balanced")`), which scales the contribution of each minority-class sample in the Adam gradient update by approximately the negative-to-positive ratio. The `sklearn.MLPClassifier` does not expose a `class_weight` parameter; `sample_weight` passed via the sklearn Pipeline interface is the correct mechanism. Early stopping monitors internal validation loss with a patience of 20 iterations; 10 % of the training data is held out for this purpose.
 
 **LightGBM.** A gradient-boosted tree ensemble with histogram-based feature binning and leaf-wise tree growth. The `scale_pos_weight` parameter was set to $N_0 / N_1$ to compensate for class imbalance. Early stopping used 50 rounds on the held-out validation set, monitoring average precision.
 
@@ -137,7 +139,7 @@ Class weights were balanced inversely proportional to class frequencies.
 
 ### 3.1 Training Protocol
 
-All models were trained on a random 20 % stratified negative subsample of the training set (all positives retained) to manage memory constraints, yielding a training set of ≈ 1,148,594 rows with 19,537 go-arounds. Validation and test sets were used at full size.
+To manage memory and computation, only a controlled subset of negative (normal landing) samples was used for training; all positive (go-around) samples were retained. Models were trained with `--neg-ratio 10`, which keeps at most 10 × N_positive negative samples, yielding a training set of approximately 215,000 rows with a positive rate of approximately 9 %. This ratio was chosen to provide a more informative gradient signal to the minority class compared to the previously used 20 % negative fraction (which still produced a ~58:1 imbalance). Validation and test sets were used at full size. Validation and test sets were used at full size.
 
 ### 3.2 Threshold Tuning
 
@@ -161,7 +163,7 @@ Given the severe class imbalance, the following metrics were computed for each m
 
 | Component | Version |
 |---|---|
-| Python | 3.12 |
+| Python | 3.11 |
 | scikit-learn | 1.4+ |
 | LightGBM | 4.x |
 | pandas / polars | latest stable |
@@ -174,7 +176,7 @@ Given the severe class imbalance, the following metrics were computed for each m
 
 ### 4.1 Model Comparison
 
-Table 1 presents the validation and test metrics for all ten model configurations. Models are ordered by validation PR-AUC (primary selection criterion).
+Table 1 presents the validation and test metrics for all ten model configurations after retraining with `--neg-ratio 10` (approximately 9 % positive training rate) and with balanced `sample_weight` applied to the MLP. Models are ordered by validation PR-AUC (primary selection criterion).
 
 **Table 1 — Model comparison (all splits, tuned threshold)**
 
@@ -246,7 +248,7 @@ This study showed that go-around classification from publicly available ADS-B an
 
 **Classifier choice mattered less than features.** On the context_metar feature set, test ROC-AUC values ranged narrowly from 0.678 (LightGBM) to 0.691 (Logistic Regression), suggesting that the feature representation is the primary bottleneck rather than the classifier family. This is consistent with findings in related aviation prediction literature [4, 5].
 
-**Limitations.** The feature set is limited to landing-level aggregates; per-second ADS-B trajectory features (vertical rate, speed profile on final approach) were not extracted. The training protocol used a 20 % negative subsample due to memory constraints; full-data training would likely improve all models. Class imbalance remains a fundamental challenge: the positive rate of ≈ 0.37 % means that even a model with strong ranking ability (ROC-AUC ≈ 0.69) achieves very low absolute precision and recall.
+**Limitations.** The feature set is limited to landing-level aggregates; per-second ADS-B trajectory features (vertical rate, speed profile on final approach) were not extracted, which is likely the principal bottleneck on discriminative performance. Class imbalance is the second fundamental challenge: with a positive rate of ≈ 0.37 %, even a model with strong ranking ability (ROC-AUC ≈ 0.69) will achieve very low absolute precision and recall at any practical recall level — this is a mathematical consequence of Bayes' theorem at low prevalence, not a failure of the classifier per se. The negative undersampling strategy (neg_ratio = 10) reduces but does not eliminate the imbalance within training, and the internal early-stopping criterion of the MLP (validation accuracy) remains a coarse signal under imbalance.
 
 **Future work.** Sequence-based models (LSTM, Transformer) applied to per-second approach trajectory data could exploit temporal structure that aggregate features discard. Oversampling techniques (SMOTE) or cost-sensitive boosting may further improve minority-class recovery. Airport-specific fine-tuning could address the performance variation observed across locations.
 

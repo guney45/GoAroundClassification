@@ -39,10 +39,8 @@ def train_mlp(
         hidden_layer_sizes=(128, 64),
         activation="relu",
         solver="adam",
-        max_iter=200,
-        early_stopping=True,
-        validation_fraction=0.1,
-        n_iter_no_change=20,
+        max_iter=100,
+        early_stopping=False,
         random_state=42,
         verbose=True,
     )

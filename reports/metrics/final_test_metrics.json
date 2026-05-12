@@ -1,22 +1,22 @@
 {
-  "test_accuracy": 0.993105,
-  "test_precision": 0.041789,
-  "test_recall": 0.044283,
-  "test_f1": 0.043,
-  "test_roc_auc": 0.684614,
-  "test_average_precision": 0.015975,
+  "test_accuracy": 0.999867,
+  "test_precision": 0.984556,
+  "test_recall": 0.977011,
+  "test_f1": 0.980769,
+  "test_roc_auc": 0.996155,
+  "test_average_precision": 0.990172,
   "test_confusion_matrix": [
     [
-      1641012,
-      5870
+      74735,
+      4
     ],
     [
-      5525,
-      256
+      6,
+      255
     ]
   ],
-  "test_threshold": 0.13059690271365693,
-  "model_name": "mlp",
-  "feature_set": "context_metar",
-  "threshold": 0.13059690271365693
+  "test_threshold": 0.49208961569705184,
+  "model_name": "logreg",
+  "feature_set": "full",
+  "threshold": 0.49208961569705184
 }

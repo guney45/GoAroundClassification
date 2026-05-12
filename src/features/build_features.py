@@ -26,6 +26,26 @@ NUMERIC_CONTEXT = [
     "hour_utc",
 ]
 
+# ADS-B approach-dynamics features (proposal §3, "rolling statistics from the
+# final approach segment"). Each value is a per-landing aggregate computed from
+# the trajectory ending at touchdown / go-around initiation. Available in the
+# enriched augmented file produced by src/data/generate_synthetic_data.py and
+# in any pipeline that derives them from raw OpenSky ADS-B states.
+NUMERIC_TRAJECTORY = [
+    "ias_at_1000ft_kts",
+    "ias_at_500ft_kts",
+    "vrate_std_5nm_fpm",
+    "vrate_mean_5nm_fpm",
+    "alt_at_gate_ft",
+    "lat_dev_1nm_nm",
+    "hdg_change_rate_dps",
+    "rwy_align_err_deg",
+    "gs_range_5nm_kts",
+    "prev_arr_gap_min",
+    "approach_dur_s",
+    "config_late_score",
+]
+
 NUMERIC_METAR = [
     "wind_speed_knts",
     "wind_dir_deg",
@@ -64,6 +84,7 @@ DROP_COLS = {"has_ga", "icao24", "callsign", "registration", "time"}
 def get_feature_groups() -> dict:
     return {
         "numeric_context":     NUMERIC_CONTEXT,
+        "numeric_trajectory":  NUMERIC_TRAJECTORY,
         "numeric_metar":       NUMERIC_METAR,
         "categorical_context": CATEGORICAL_CONTEXT,
         "categorical_metar":   CATEGORICAL_METAR,
@@ -118,17 +139,29 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
 
 def build_feature_matrix(
     df: pd.DataFrame,
-    feature_set: Literal["context_only", "context_metar"] = "context_metar",
+    feature_set: Literal["context_only", "context_metar", "full"] = "full",
 ) -> tuple[pd.DataFrame, pd.Series, list[str], list[str]]:
-    """Return X, y, numeric_features, categorical_features."""
+    """Return X, y, numeric_features, categorical_features.
+
+    Feature sets
+    ------------
+    context_only   : airport / runway / aircraft / time only.
+    context_metar  : context + METAR weather (legacy ablation set).
+    full           : context + METAR + ADS-B trajectory dynamics (proposal §3).
+                     This is the recommended set when trajectory columns are
+                     present in the input dataframe — without it the model is
+                     limited to weak landing-level aggregates.
+    """
     groups = get_feature_groups()
 
-    num_feats  = groups["numeric_context"].copy()
-    cat_feats  = groups["categorical_context"].copy()
+    num_feats = groups["numeric_context"].copy()
+    cat_feats = groups["categorical_context"].copy()
 
-    if feature_set == "context_metar":
+    if feature_set in ("context_metar", "full"):
         num_feats += groups["numeric_metar"]
         cat_feats += groups["categorical_metar"]
+    if feature_set == "full":
+        num_feats += groups["numeric_trajectory"]
 
     # Keep only columns that actually exist
     num_feats = [c for c in num_feats if c in df.columns]

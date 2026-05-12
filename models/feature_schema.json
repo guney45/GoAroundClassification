@@ -11,7 +11,19 @@
     "visibility_m",
     "temperature_deg",
     "press_sea_level_p",
-    "press_p"
+    "press_p",
+    "ias_at_1000ft_kts",
+    "ias_at_500ft_kts",
+    "vrate_std_5nm_fpm",
+    "vrate_mean_5nm_fpm",
+    "alt_at_gate_ft",
+    "lat_dev_1nm_nm",
+    "hdg_change_rate_dps",
+    "rwy_align_err_deg",
+    "gs_range_5nm_kts",
+    "prev_arr_gap_min",
+    "approach_dur_s",
+    "config_late_score"
   ],
   "categorical_features": [
     "airport",
@@ -30,7 +42,7 @@
     "weather_obscuration",
     "weather_other"
   ],
-  "feature_set": "context_metar",
-  "best_threshold": 0.13059690271365693,
-  "model_name": "mlp"
+  "feature_set": "full",
+  "best_threshold": 0.49208961569705184,
+  "model_name": "logreg"
 }

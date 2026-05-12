@@ -1,0 +1,39 @@
+{
+  "model": "mlp",
+  "feature_set": "full",
+  "best_threshold": 1.0,
+  "validation_accuracy": 0.999893,
+  "validation_precision": 0.990291,
+  "validation_recall": 0.983923,
+  "validation_f1": 0.987097,
+  "validation_roc_auc": 0.999971,
+  "validation_average_precision": 0.987559,
+  "validation_confusion_matrix": [
+    [
+      74686,
+      3
+    ],
+    [
+      5,
+      306
+    ]
+  ],
+  "validation_threshold": 1.0,
+  "test_accuracy": 0.999933,
+  "test_precision": 0.992308,
+  "test_recall": 0.988506,
+  "test_f1": 0.990403,
+  "test_roc_auc": 0.998065,
+  "test_average_precision": 0.987413,
+  "test_confusion_matrix": [
+    [
+      74737,
+      2
+    ],
+    [
+      3,
+      258
+    ]
+  ],
+  "test_threshold": 1.0
+}

@@ -1,39 +1,39 @@
 {
   "model": "lightgbm",
   "feature_set": "context_metar",
-  "best_threshold": 0.8495964077630952,
-  "validation_accuracy": 0.770824,
-  "validation_precision": 0.006979,
-  "validation_recall": 0.487246,
-  "validation_f1": 0.013761,
-  "validation_roc_auc": 0.683987,
-  "validation_average_precision": 0.015798,
+  "best_threshold": 0.2280584197808062,
+  "validation_accuracy": 0.99636,
+  "validation_precision": 0.56129,
+  "validation_recall": 0.559486,
+  "validation_f1": 0.560386,
+  "validation_roc_auc": 0.921878,
+  "validation_average_precision": 0.526112,
   "validation_confusion_matrix": [
     [
-      1268239,
-      375073
+      74553,
+      136
     ],
     [
-      2774,
-      2636
+      137,
+      174
     ]
   ],
-  "validation_threshold": 0.5,
-  "test_accuracy": 0.99579,
-  "test_precision": 0.076923,
-  "test_recall": 0.018509,
-  "test_f1": 0.029838,
-  "test_roc_auc": 0.678807,
-  "test_average_precision": 0.01338,
+  "validation_threshold": 0.2280584197808062,
+  "test_accuracy": 0.996973,
+  "test_precision": 0.560714,
+  "test_recall": 0.601533,
+  "test_f1": 0.580407,
+  "test_roc_auc": 0.928762,
+  "test_average_precision": 0.512346,
   "test_confusion_matrix": [
     [
-      1645598,
-      1284
+      74616,
+      123
     ],
     [
-      5674,
-      107
+      104,
+      157
     ]
   ],
-  "test_threshold": 0.8495964077630952
+  "test_threshold": 0.2280584197808062
 }

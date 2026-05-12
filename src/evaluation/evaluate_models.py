@@ -15,7 +15,9 @@ from sklearn.metrics import (
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from src.config import FINAL_MODEL, METRICS_DIR, FIGURES_DIR, FEATURE_SCHEMA
-from src.models.common import load_model_bundle, load_splits, evaluate_binary_classifier
+from src.models.common import (
+    apply_calibration, evaluate_binary_classifier, load_model_bundle, load_splits,
+)
 
 
 def evaluate_final_model() -> None:
@@ -31,23 +33,28 @@ def evaluate_final_model() -> None:
     else:
         schema = bundle["feature_schema"]
 
-    feature_set = schema.get("feature_set", "context_metar")
+    feature_set = schema.get("feature_set", "full")
     threshold   = schema.get("best_threshold", 0.5)
 
     print(f"  Model: {schema.get('model_name', 'unknown')}  [{feature_set}]")
 
     _, _, _, _, X_te, y_te, num_feats, cat_feats = load_splits(feature_set)
 
-    # Get predictions — Pipeline models include preprocessing; standalone classifiers need it applied
     from sklearn.pipeline import Pipeline as _Pipeline
     if isinstance(model, _Pipeline):
-        y_prob = model.predict_proba(X_te)[:, 1]
+        y_prob_raw = model.predict_proba(X_te)[:, 1]
     else:
         try:
             X_pre = preprocessor.transform(X_te)
         except Exception:
             X_pre = X_te.values
-        y_prob = model.predict_proba(X_pre)[:, 1]
+        y_prob_raw = model.predict_proba(X_pre)[:, 1]
+    y_prob = apply_calibration(
+        y_prob_raw,
+        bundle.get("calibrator"),
+        bundle.get("prior_train"),
+        bundle.get("prior_test"),
+    )
     y_true = y_te.values
 
     # --- Metrics ---

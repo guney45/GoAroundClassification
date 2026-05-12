@@ -56,8 +56,17 @@ def predict(features: dict) -> dict:
         except Exception:
             X_pre = X.values
         proba = model.predict_proba(X_pre)[0]
-    prob_ga = float(proba[1])
-    prob_nl = float(proba[0])
+    prob_ga_raw = float(proba[1])
+
+    # Apply prior-shift + isotonic calibration if the bundle ships them.
+    from src.models.common import apply_calibration
+    prob_ga = float(apply_calibration(
+        np.array([prob_ga_raw]),
+        bundle.get("calibrator"),
+        bundle.get("prior_train"),
+        bundle.get("prior_test"),
+    )[0])
+    prob_nl = 1.0 - prob_ga
     pred_class = int(prob_ga >= threshold)
     label = "Go-Around Risk" if pred_class == 1 else "Normal Landing"
 

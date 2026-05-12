@@ -1,39 +1,39 @@
 {
   "model": "random_forest",
   "feature_set": "context_only",
-  "best_threshold": 0.7119792318668332,
-  "validation_accuracy": 0.618715,
-  "validation_precision": 0.004826,
-  "validation_recall": 0.561368,
-  "validation_f1": 0.00957,
-  "validation_roc_auc": 0.632869,
-  "validation_average_precision": 0.011408,
+  "best_threshold": 0.010256410256410256,
+  "validation_accuracy": 0.991187,
+  "validation_precision": 0.011173,
+  "validation_recall": 0.012862,
+  "validation_f1": 0.011958,
+  "validation_roc_auc": 0.509799,
+  "validation_average_precision": 0.004359,
   "validation_confusion_matrix": [
     [
-      1017052,
-      626260
+      74335,
+      354
     ],
     [
-      2373,
-      3037
+      307,
+      4
     ]
   ],
-  "validation_threshold": 0.5,
-  "test_accuracy": 0.995948,
-  "test_precision": 0.09612,
-  "test_recall": 0.018855,
-  "test_f1": 0.031526,
-  "test_roc_auc": 0.639375,
-  "test_average_precision": 0.010587,
+  "validation_threshold": 0.010256410256410256,
+  "test_accuracy": 0.991507,
+  "test_precision": 0.002646,
+  "test_recall": 0.003831,
+  "test_f1": 0.00313,
+  "test_roc_auc": 0.497916,
+  "test_average_precision": 0.003484,
   "test_confusion_matrix": [
     [
-      1645857,
-      1025
+      74362,
+      377
     ],
     [
-      5672,
-      109
+      260,
+      1
     ]
   ],
-  "test_threshold": 0.7119792318668332
+  "test_threshold": 0.010256410256410256
 }

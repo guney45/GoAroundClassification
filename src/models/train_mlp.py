@@ -6,7 +6,6 @@ from pathlib import Path
 
 from sklearn.neural_network import MLPClassifier
 from sklearn.pipeline import Pipeline
-from sklearn.utils.class_weight import compute_sample_weight
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from src.config import MODELS_DIR, METRICS_DIR
@@ -30,25 +29,29 @@ def train_mlp(
 
     preprocessor = create_preprocessor(num_feats, cat_feats)
 
-    # Balanced sample weights compensate for class imbalance.
-    # sklearn MLPClassifier has no class_weight parameter; sample_weight
-    # is the correct way to up-weight the minority class during SGD.
-    sample_weights = compute_sample_weight("balanced", y_tr.values)
-
+    # Note: sklearn MLPClassifier has no class_weight parameter, and
+    # sample_weight distorts probability outputs toward 0.5 when class
+    # imbalance is severe, hurting ranking (ROC-AUC). The correct mechanism
+    # for MLP under imbalance is threshold tuning on the validation PR-curve,
+    # which is applied after training via tune_threshold_for_f1().
+    # Using more training data (sample_frac=0.2) gives the MLP enough
+    # examples of each airport/aircraft pattern for good representations.
     clf = MLPClassifier(
         hidden_layer_sizes=(128, 64),
         activation="relu",
         solver="adam",
-        max_iter=100,
-        early_stopping=False,
+        max_iter=200,
+        early_stopping=True,
+        validation_fraction=0.1,
+        n_iter_no_change=15,
         random_state=42,
         verbose=True,
     )
     pipe = Pipeline([("pre", preprocessor), ("clf", clf)])
 
-    print("  Fitting MLP with balanced sample weights ...")
+    print("  Fitting MLP (early_stopping=True, n_iter_no_change=15) ...")
     t0 = time.time()
-    pipe.fit(X_tr, y_tr, clf__sample_weight=sample_weights)
+    pipe.fit(X_tr, y_tr)
     print(f"  Fit done [{time.time()-t0:.1f}s]  iterations={pipe.named_steps['clf'].n_iter_}")
 
     print("  Predicting on validation ...")

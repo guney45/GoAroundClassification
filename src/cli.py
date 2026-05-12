@@ -37,11 +37,20 @@ Commands:
     sp.add_argument("--sample-frac", type=float, default=None)
     sp.add_argument("--top-airports", type=int, default=None)
 
-    sub.add_parser("train-lda")
-    sub.add_parser("train-logreg")
-    sub.add_parser("train-tree")
-    sub.add_parser("train-mlp")
-    sub.add_parser("train-lightgbm")
+    def _add_train_args(p):
+        p.add_argument("--sample-frac", type=float, default=None,
+                       help="Fraction of negatives to keep (legacy). Use --neg-ratio instead.")
+        p.add_argument("--neg-ratio", type=int, default=None,
+                       help="Keep at most neg_ratio × n_positive negatives (e.g. 10).")
+
+    _add_train_args(sub.add_parser("train-lda"))
+    _add_train_args(sub.add_parser("train-logreg"))
+    sp_tree = sub.add_parser("train-tree")
+    _add_train_args(sp_tree)
+    sp_tree.add_argument("--n-estimators", type=int, default=200)
+    sp_tree.add_argument("--max-depth", type=int, default=15)
+    _add_train_args(sub.add_parser("train-mlp"))
+    _add_train_args(sub.add_parser("train-lightgbm"))
     sub.add_parser("select-best-model")
     sub.add_parser("evaluate")
     sub.add_parser("error-analysis")
@@ -60,15 +69,26 @@ Commands:
         from src.data.make_splits import make_splits
         make_splits(sample_frac=args.sample_frac, top_airports=args.top_airports)
     elif cmd == "train-lda":
-        from src.models.train_lda import main as fn; fn()
+        from src.models.train_lda import train_lda
+        for fs in ["context_only", "context_metar"]:
+            train_lda(fs, args.sample_frac, args.neg_ratio)
     elif cmd == "train-logreg":
-        from src.models.train_logreg import main as fn; fn()
+        from src.models.train_logreg import train_logreg
+        for fs in ["context_only", "context_metar"]:
+            train_logreg(fs, args.sample_frac, args.neg_ratio)
     elif cmd == "train-tree":
-        from src.models.train_tree import main as fn; fn()
+        from src.models.train_tree import train_tree
+        for fs in ["context_only", "context_metar"]:
+            train_tree(fs, n_estimators=args.n_estimators, max_depth=args.max_depth,
+                       sample_frac=args.sample_frac, neg_ratio=args.neg_ratio)
     elif cmd == "train-mlp":
-        from src.models.train_mlp import main as fn; fn()
+        from src.models.train_mlp import train_mlp
+        for fs in ["context_only", "context_metar"]:
+            train_mlp(fs, args.sample_frac, args.neg_ratio)
     elif cmd == "train-lightgbm":
-        from src.models.train_lightgbm import main as fn; fn()
+        from src.models.train_lightgbm import train_lightgbm
+        for fs in ["context_only", "context_metar"]:
+            train_lightgbm(fs, args.sample_frac, args.neg_ratio)
     elif cmd == "select-best-model":
         from src.models.select_best_model import main as fn; fn()
     elif cmd == "evaluate":

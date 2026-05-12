@@ -23,9 +23,15 @@ from src.models.common import (
 FEATURE_SETS = ["context_only", "context_metar"]
 
 
-def train_logreg(feature_set: str = "context_metar", sample_frac: float | None = None) -> dict:
+def train_logreg(
+    feature_set: str = "context_metar",
+    sample_frac: float | None = None,
+    neg_ratio: int | None = None,
+) -> dict:
     print(f"\n=== Logistic Regression [{feature_set}] ===")
-    X_tr, y_tr, X_va, y_va, X_te, y_te, num_feats, cat_feats = load_splits(feature_set, sample_frac)
+    X_tr, y_tr, X_va, y_va, X_te, y_te, num_feats, cat_feats = load_splits(
+        feature_set, sample_frac, neg_ratio
+    )
 
     preprocessor = create_preprocessor(num_feats, cat_feats)
     clf = LogisticRegression(class_weight="balanced", max_iter=1000, solver="lbfgs", verbose=0)
@@ -58,10 +64,13 @@ def train_logreg(feature_set: str = "context_metar", sample_frac: float | None =
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--sample-frac", type=float, default=None)
+    parser.add_argument("--sample-frac", type=float, default=None,
+                        help="Fraction of negatives to keep (legacy). Use --neg-ratio instead.")
+    parser.add_argument("--neg-ratio", type=int, default=None,
+                        help="Keep at most neg_ratio × n_positive negatives (e.g. 10).")
     args = parser.parse_args()
     for fs in FEATURE_SETS:
-        train_logreg(fs, args.sample_frac)
+        train_logreg(fs, args.sample_frac, args.neg_ratio)
 
 
 if __name__ == "__main__":

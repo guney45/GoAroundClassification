@@ -1,39 +1,39 @@
 {
   "model": "random_forest",
   "feature_set": "context_metar",
-  "best_threshold": 0.7454381462077403,
-  "validation_accuracy": 0.833085,
-  "validation_precision": 0.008113,
-  "validation_recall": 0.411275,
-  "validation_f1": 0.015913,
-  "validation_roc_auc": 0.680666,
-  "validation_average_precision": 0.011904,
+  "best_threshold": 0.7634230803676537,
+  "validation_accuracy": 0.807863,
+  "validation_precision": 0.007541,
+  "validation_recall": 0.440665,
+  "validation_f1": 0.014828,
+  "validation_roc_auc": 0.677997,
+  "validation_average_precision": 0.010169,
   "validation_confusion_matrix": [
     [
-      1371300,
-      272012
+      1329558,
+      313754
     ],
     [
-      3185,
-      2225
+      3026,
+      2384
     ]
   ],
   "validation_threshold": 0.5,
-  "test_accuracy": 0.990691,
-  "test_precision": 0.029126,
-  "test_recall": 0.051375,
-  "test_f1": 0.037176,
-  "test_roc_auc": 0.689583,
-  "test_average_precision": 0.011471,
+  "test_accuracy": 0.98543,
+  "test_precision": 0.020342,
+  "test_recall": 0.067116,
+  "test_f1": 0.031221,
+  "test_roc_auc": 0.684897,
+  "test_average_precision": 0.009939,
   "test_confusion_matrix": [
     [
-      1636982,
-      9900
+      1628196,
+      18686
     ],
     [
-      5484,
-      297
+      5393,
+      388
     ]
   ],
-  "test_threshold": 0.7454381462077403
+  "test_threshold": 0.7634230803676537
 }

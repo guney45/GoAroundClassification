@@ -1,39 +1,39 @@
 {
   "model": "mlp",
   "feature_set": "context_only",
-  "best_threshold": 0.12435272990309676,
-  "validation_accuracy": 0.996626,
-  "validation_precision": 0.217712,
-  "validation_recall": 0.010906,
-  "validation_f1": 0.020771,
-  "validation_roc_auc": 0.615695,
-  "validation_average_precision": 0.015688,
+  "best_threshold": 0.18684700844095914,
+  "validation_accuracy": 0.996284,
+  "validation_precision": 0.136778,
+  "validation_recall": 0.024954,
+  "validation_f1": 0.042207,
+  "validation_roc_auc": 0.616973,
+  "validation_average_precision": 0.013331,
   "validation_confusion_matrix": [
     [
-      1643100,
-      212
+      1642460,
+      852
     ],
     [
-      5351,
-      59
+      5275,
+      135
     ]
   ],
   "validation_threshold": 0.5,
-  "test_accuracy": 0.99537,
-  "test_precision": 0.068297,
-  "test_recall": 0.025601,
-  "test_f1": 0.037242,
-  "test_roc_auc": 0.609158,
-  "test_average_precision": 0.012324,
+  "test_accuracy": 0.994084,
+  "test_precision": 0.041533,
+  "test_recall": 0.031309,
+  "test_f1": 0.035704,
+  "test_roc_auc": 0.603782,
+  "test_average_precision": 0.009422,
   "test_confusion_matrix": [
     [
-      1644863,
-      2019
+      1642705,
+      4177
     ],
     [
-      5633,
-      148
+      5600,
+      181
     ]
   ],
-  "test_threshold": 0.12435272990309676
+  "test_threshold": 0.18684700844095914
 }

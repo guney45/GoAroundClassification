@@ -31,6 +31,6 @@
     "weather_other"
   ],
   "feature_set": "context_metar",
-  "best_threshold": 0.13059690271365693,
+  "best_threshold": 0.16925223923843538,
   "model_name": "mlp"
 }
